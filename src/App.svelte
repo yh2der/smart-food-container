@@ -121,6 +121,14 @@
 	}
 </script>
 
+<header class="banner">
+	<div>
+		<h1>Smart Food Container</h1>
+		<p>Interface to a Smart Object · Yun Hao Li</p>
+	</div>
+	<a href="https://app.notion.com/p/Smart-Food-Container-3d56919b723280f5a7a8ffe68621d2d3?source=copy_link">Project write-up ↗</a>
+</header>
+
 <main>
 	<section class="device-ui">
 		<FoodStatus
@@ -138,13 +146,12 @@
 	</section>
 
 	<aside class="testing-ui">
-		<h1 class="title">Smart Food Container</h1>
 		<div class="panel-header">
 			<h2>Simulation</h2>
 			<button class="info-btn" onclick={() => (showInfo = true)} aria-label="Info">i</button>
 		</div>
 
-		<p class="hint">Select a food scenario:</p>
+		<p class="step">1. Choose a food</p>
 		<div class="food-options">
 			{#each Object.entries(SAMPLES) as [key, food]}
 				<button
@@ -162,28 +169,27 @@
 			{/each}
 		</div>
 
-		<button onclick={takePhoto} disabled={isAnalyzing}>Take Photo</button>
+		<p class="step">2. Put it in the container</p>
+		<button class="primary" onclick={takePhoto} disabled={isAnalyzing}>📷 Take Photo</button>
 		{#if isAnalyzing}
 			<p class="hint">Analyzing food...</p>
 		{/if}
 
-		<hr />
+		<p class="step">3. Let time pass <span class="hint">day {simDay}</span></p>
+		<div class="button-row">
+			<button onclick={advanceDay} disabled={!detectedFood || shownDays <= 0 || isAnalyzing}>
+				Advance 1 Day
+			</button>
+			<button class="primary" title="1 second = 1 day" onclick={togglePlay} disabled={!detectedFood || shownDays <= 0 || isAnalyzing}>
+				{isPlaying ? '❚❚ Pause' : '▶ Play'}
+			</button>
+		</div>
 
-		<p class="hint">Time simulation — day {simDay}</p>
-		<button onclick={advanceDay} disabled={!detectedFood || shownDays <= 0 || isAnalyzing}>
-			Advance 1 Day
-		</button>
-		<button onclick={togglePlay} disabled={!detectedFood || shownDays <= 0 || isAnalyzing}>
-			{isPlaying ? '❚❚ Pause' : '▶ Play (1s = 1 day)'}
-		</button>
-
-		<hr />
-
-		<p class="hint">Bacteria sensor — now {bacteria}%</p>
+		<p class="step">Testing: bacteria sensor <span class="hint">{detectedFood ? `${bacteria}%` : ''}</span></p>
 		<div class="level-buttons">
 			{#each [['normal', 20], ['rising', 60], ['high', 100]] as [level, value]}
 				<button
-					class:selected={bacteriaLevel === level}
+					class:selected={detectedFood && bacteriaLevel === level}
 					onclick={() => setBacteria(value)}
 					disabled={!detectedFood || isAnalyzing}
 				>
@@ -191,54 +197,137 @@
 				</button>
 			{/each}
 		</div>
-
-		<hr />
-
-		<p class="credit">Created by: Howard Li</p>
-		<a href="https://app.notion.com/p/Smart-Food-Container-3d56919b723280f5a7a8ffe68621d2d3?source=copy_link">
-			Project write-up
-		</a>
 	</aside>
 </main>
 
 {#if showInfo}
 	<div class="backdrop" onclick={(e) => e.target === e.currentTarget && (showInfo = false)} role="presentation">
 		<div class="modal" role="dialog">
-			<h2>How to use this demo</h2>
-			<ul>
-				<li>Select one of the 4 food scenarios. Each one has a different estimated time and a different bacteria growth rate.</li>
-				<li>Take a photo to simulate food recognition.</li>
-				<li>The smart container displays the detected food and remaining storage time.</li>
-				<li>Advance time to simulate food aging, or press Play to let days pass automatically.</li>
-				<li>The LED ring changes color based on food freshness: green (3+ days), orange (2 days), red (1 day or less).</li>
-				<li>A bacteria sensor inside the lid measures the bacteria amount (% of the unsafe limit) every day:
-					<ul>
-						<li><strong>Normal</strong> (under 50%) — some bacteria is normal; the estimated days are used.</li>
-						<li><strong>Rising</strong> (50–99%) — still edible but getting close: EAT TODAY (at most 1 day left).</li>
-						<li><strong>High</strong> (100%) — unsafe: SPOILED (0 days), no matter how many days were estimated.</li>
-					</ul>
-					The reading grows as time passes. The Normal / Rising / High buttons override today's reading for testing.
-				</li>
-			</ul>
-			<p><strong>Buttons on the lid</strong> (the real device controls):</p>
-			<ul>
-				<li><strong>− / +</strong> — correct the days left if the detection was wrong.</li>
-				<li><strong>History</strong> — switch the screen to a chart of the daily bacteria readings.</li>
-				<li><strong>Clear</strong> — the food was eaten or thrown away; resets the container and the sensor.</li>
-			</ul>
-			<button onclick={() => (showInfo = false)}>Close</button>
+			<h2>How to use</h2>
+			<ol class="info-steps">
+				<li>Choose a food</li>
+				<li>Press <b>Take Photo</b></li>
+				<li>Press <b>Advance 1 Day</b> or <b>Play</b></li>
+			</ol>
+
+			<h3>LED ring</h3>
+			<dl>
+				<dt><span class="dot" style="background:#2ecc71"></span>Green</dt><dd>3+ days</dd>
+				<dt><span class="dot" style="background:#f39c12"></span>Orange</dt><dd>2 days</dd>
+				<dt><span class="dot" style="background:#e74c3c"></span>Red</dt><dd>1 day or less · blinks when spoiled</dd>
+			</dl>
+
+			<h3>Bacteria sensor</h3>
+			<dl>
+				<dt>Normal</dt><dd>under 50%</dd>
+				<dt>Rising</dt><dd>50–99% → EAT TODAY</dd>
+				<dt>High</dt><dd>100% → SPOILED</dd>
+			</dl>
+			<p class="info-note">The Normal / Rising / High buttons set today's reading for testing.</p>
+
+			<h3>Lid buttons</h3>
+			<dl>
+				<dt>− / +</dt><dd>Correct the days</dd>
+				<dt>History</dt><dd>Bacteria chart</dd>
+				<dt>Clear</dt><dd>Empty the container</dd>
+			</dl>
+
+			<button class="close-btn" onclick={() => (showInfo = false)}>Close</button>
 		</div>
 	</div>
 {/if}
 
 <style>
+	.banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 12px 24px;
+		background: #1f2a30;
+		color: #fff;
+		text-align: left;
+	}
+
+	.banner h1 {
+		margin: 0;
+		font-size: 24px;
+		line-height: 1.2;
+		letter-spacing: normal;
+		color: #fff;
+	}
+
+	.banner p {
+		font-size: 14px;
+		opacity: 0.75;
+	}
+
+	.banner a {
+		color: #fff;
+		font-size: 14px;
+		white-space: nowrap;
+	}
+
 	main {
 		display: flex;
-		min-height: 100vh;
+		flex: 1;
+	}
+
+	/* Every clickable thing in the panel looks like a button */
+	.testing-ui button {
+		font: inherit;
+		padding: 8px 12px;
+		border: 1px solid #b9c0c7;
+		border-radius: 8px;
+		background: var(--bg);
+		color: var(--text-h);
+		cursor: pointer;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+		transition:
+			border-color 0.15s,
+			background 0.15s;
+	}
+
+	.testing-ui button:hover:not(:disabled) {
+		border-color: var(--accent);
+		background: var(--accent-bg);
+	}
+
+	.testing-ui button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+		box-shadow: none;
+	}
+
+	.testing-ui button.primary {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: #fff;
+		font-weight: 600;
+	}
+
+	.testing-ui button.primary:hover:not(:disabled) {
+		background: var(--accent);
+		filter: brightness(1.1);
+	}
+
+	.step {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		margin-top: 6px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--text-h);
+	}
+
+	.step .hint {
+		font-weight: normal;
+		font-size: 12px;
 	}
 
 	.device-ui {
-		flex: 0 0 78%;
+		flex: 0 0 75%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -249,18 +338,12 @@
 	.testing-ui {
 		flex: 1;
 		border-left: 1px solid var(--border);
-		padding: 16px;
+		padding: 14px 16px;
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
+		gap: 8px;
 		text-align: left;
 		font-size: 14px;
-	}
-
-	.title {
-		font-size: 22px;
-		letter-spacing: normal;
-		margin: 0;
 	}
 
 	.panel-header {
@@ -273,12 +356,15 @@
 		margin: 0;
 	}
 
-	.info-btn {
-		width: 26px;
-		height: 26px;
-		border-radius: 50%;
+	.testing-ui .info-btn {
+		width: 28px;
+		height: 28px;
+		flex: none;
+		display: grid;
+		place-items: center;
 		padding: 0;
-		font-weight: bold;
+		border-radius: 50%;
+		font: italic 700 15px/1 Georgia, serif;
 	}
 
 	.food-options {
@@ -287,11 +373,22 @@
 		gap: 6px;
 	}
 
-	.food-option {
+	.testing-ui .food-option {
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		padding: 4px 10px;
 		text-align: left;
+		line-height: 1.25;
+	}
+
+	.button-row {
+		display: flex;
+		gap: 6px;
+	}
+
+	.button-row button {
+		flex: 1;
 	}
 
 	.food-option small {
@@ -309,27 +406,19 @@
 		flex: 1;
 	}
 
-	.level-buttons .selected,
-	.food-option.selected {
-		outline: 2px solid var(--accent);
+	.testing-ui .level-buttons .selected,
+	.testing-ui .food-option.selected {
+		border-color: var(--accent);
+		background: var(--accent-bg);
+		box-shadow: inset 0 0 0 1px var(--accent);
 	}
 
 	.icon {
-		font-size: 22px;
+		font-size: 20px;
 	}
 
 	.hint {
 		font-size: 13px;
-	}
-
-	.credit {
-		font-size: 12px;
-	}
-
-	hr {
-		width: 100%;
-		border: none;
-		border-top: 1px solid var(--border);
 	}
 
 	.backdrop {
@@ -343,9 +432,74 @@
 
 	.modal {
 		background: var(--bg);
-		padding: 20px;
-		border-radius: 8px;
-		max-width: 400px;
+		padding: 24px;
+		border-radius: 12px;
+		width: 340px;
 		text-align: left;
+		font-size: 14px;
+		line-height: 1.5;
+	}
+
+	.modal h2 {
+		margin: 0 0 8px;
+	}
+
+	.modal h3 {
+		margin: 16px 0 6px;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text);
+	}
+
+	.info-steps {
+		margin: 0;
+		padding-left: 20px;
+		color: var(--text-h);
+	}
+
+	.modal dl {
+		display: grid;
+		grid-template-columns: 80px 1fr;
+		gap: 4px 12px;
+		margin: 0;
+	}
+
+	.modal dt {
+		font-weight: 600;
+		color: var(--text-h);
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.modal dd {
+		margin: 0;
+	}
+
+	.dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+	}
+
+	.info-note {
+		margin-top: 6px;
+		font-size: 12px;
+		opacity: 0.8;
+	}
+
+	.close-btn {
+		margin-top: 20px;
+		width: 100%;
+		padding: 8px;
+		font: inherit;
+		font-weight: 600;
+		border: none;
+		border-radius: 8px;
+		background: var(--accent);
+		color: #fff;
+		cursor: pointer;
 	}
 </style>

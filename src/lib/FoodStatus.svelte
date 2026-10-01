@@ -26,8 +26,8 @@
 
 <div class="device-area">
 	<!-- Physical object: shows WHERE the UI lives on the container -->
-	<div class="object">
-		<p class="caption">Smart Container</p>
+	<div class="object" aria-hidden="true" title="Diagram only — not clickable">
+		<p class="caption">Smart Container <span class="diagram-note">(diagram)</span></p>
 
 		<div class="lid">
 			<div class="lid-screen"></div>
@@ -78,7 +78,7 @@
 	<!-- Enlarged view of the lid screen -->
 	<div class="screen-view">
 		<p class="caption">Lid Screen (enlarged)</p>
-		<div class="screen">
+		<div class="screen" title="Display only — use the lid buttons below">
 			{#if foodName && showHistory}
 				<p class="food-name">BACTERIA HISTORY</p>
 				<svg class="chart" viewBox="0 0 200 120">
@@ -112,7 +112,10 @@
 					BACTERIA: {bacteria}% {bacteriaLevel.toUpperCase()}
 				</p>
 			{:else}
-				<p class="empty">NO FOOD DETECTED</p>
+				<p class="empty">
+					NO FOOD DETECTED
+					<span>Choose a food and press Take Photo →</span>
+				</p>
 			{/if}
 		</div>
 
@@ -142,8 +145,21 @@
 		align-items: center;
 	}
 
+	/* Not interactive: hovering shows a "not allowed" cursor */
+	.object,
+	.screen {
+		cursor: not-allowed;
+		user-select: none;
+	}
+
 	.object {
 		width: 360px;
+	}
+
+	.diagram-note {
+		font-weight: normal;
+		font-size: 13px;
+		opacity: 0.6;
 	}
 
 	.caption {
@@ -319,14 +335,40 @@
 	}
 
 	.buttons button {
-		min-width: 48px;
-		padding: 8px 12px;
-		font-size: 16px;
+		min-width: 52px;
+		padding: 10px 14px;
+		font: 600 16px var(--sans);
+		color: #222;
+		background: linear-gradient(#f4f5f7, #d9dde2);
+		border: 1px solid #a9b0b8;
+		border-bottom-width: 3px;
+		border-radius: 10px;
+		cursor: pointer;
+	}
+
+	.buttons button:hover:not(:disabled) {
+		background: linear-gradient(#ffffff, #e3e7eb);
+	}
+
+	.buttons button:active:not(:disabled) {
+		transform: translateY(2px);
+		border-bottom-width: 1px;
+	}
+
+	.buttons button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 
 	.empty {
 		padding: 50px 0;
 		font-size: 14px;
+	}
+
+	.empty span {
+		display: block;
+		margin-top: 10px;
+		font-size: 12px;
 		opacity: 0.7;
 	}
 </style>
